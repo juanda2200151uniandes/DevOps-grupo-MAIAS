@@ -1,0 +1,573 @@
+{
+  "info": {
+    "_postman_id": "426e4095-6636-4d9c-a625-6567da94a76b",
+    "name": "Dev-ops-1-tests",
+    "description": "# Microservicio de Gestión de Listas Negras\n\nEste microservicio centraliza la administración de correos electrónicos bloqueados para mitigar riesgos legales y operativos derivados de la gestión inadecuada de comunicaciones en aplicaciones internas de una compañía multinacional.\n\n### Propósito de la API\n\nLa API expone dos funcionalidades principales bajo un modelo de microservicios:\n\n1. **Registro:** Almacena nuevos correos en la lista negra global, capturando de forma automática la dirección IP del sistema solicitante y la marca de tiempo (UTC).\n    \n2. **Consulta:** Permite verificar si un correo específico se encuentra bloqueado y recupera el motivo del bloqueo registrado por la aplicación de origen.\n    \n\n### Stack Tecnológico (Arquitectura PaaS)\n\nEl despliegue se realizó íntegramente sobre la infraestructura de Amazon Web Services:\n\n- **Servidor de Aplicaciones:** AWS Elastic Beanstalk (Python / Flask).\n    \n- **Base de Datos:** AWS RDS (Motor PostgreSQL).\n    \n- **Seguridad:** Autenticación y autorización basada en JSON Web Tokens (JWT).\n    \n\n### Guía de Uso de la Colección\n\nPara ejecutar las pruebas correctamente, siga este flujo:\n\n1. **Configuración:** Asegúrese de que el entorno (Environment) tenga definida la variable `base_url` con la URL de su instancia en Beanstalk.\n    \n2. **Autenticación:** Ejecute la petición de **Login** para generar el token de acceso.\n    \n3. **Autorización:** Las peticiones protegidas utilizan la variable `{{token}}` en el header de tipo Bearer Token. El script de la prueba de Login actualiza esta variable automáticamente tras una respuesta exitosa.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "51946189",
+    "_collection_link": "https://go.postman.co/collection/51946189-426e4095-6636-4d9c-a625-6567da94a76b?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.environment.set(\"token\", pm.response.json().access_token);"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"admin123\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "login"
+          ]
+        },
+        "description": "## 1\\. Login (Autenticación)\n\n**Descripción:** Endpoint para autenticar a los sistemas o administradores. Genera un token JWT necesario para acceder a los recursos protegidos de la lista negra.\n\n- **Método:** `POST`\n    \n- **Endpoint:** `/login`\n    \n- **Código de respuesta:** `200 OK`\n    \n- **Nota técnica:** El token devuelto tiene una validez de 1 hora."
+      },
+      "response": [
+        {
+          "name": "Login",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"username\": \"admin\",\r\n    \"password\": \"admin123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "login"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Server",
+              "value": "nginx"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 10 Apr 2026 21:28:58 GMT"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Content-Length",
+              "value": "380"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"mensaje\": \"Login exitoso\",\n    \"access_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc3NTg1NjUzOCwianRpIjoiZDcxYTYwYjQtMTZmYi00OWZkLWJhNTktZWRkZmI2MmRhMWY4IiwidHlwZSI6ImFjY2VzcyIsInN1YiI6ImFkbWluIiwibmJmIjoxNzc1ODU2NTM4LCJjc3JmIjoiNmU3OWQ4ZTEtN2M2Ni00N2Y5LTk2ZWItMGZiMmZkMGMxZjRmIiwiZXhwIjoxNzc1ODYwMTM4fQ.5zJq7PPc6EZyEX6FJaaxZKP-UFcoeOAIrQDOpB6S2gI\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Agregar email no existente en la lista negra",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"estudiante_andes3@uniandes.edu.co\",\r\n    \"app_uuid\": \"f47ac10b-58cc-4372-a567-0e02b2c3d479\",\r\n    \"blocked_reason\": \"Intento de phishing detectado en sistema de notas\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/blacklists",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "blacklists"
+          ]
+        },
+        "description": "## 2\\. Agregar email (Nuevo registro)\n\n**Descripción:** Registra un correo electrónico en la lista negra global. El sistema captura automáticamente la dirección IP del solicitante y la marca de tiempo en UTC.\n\n- **Método:** `POST`\n    \n- **Endpoint:** `/blacklists`\n    \n- **Autorización:** `Bearer Token`\n    \n- **Código de respuesta:** `201 Created`\n    \n- **Validaciones:** Requiere un `app_uuid` en formato UUID válido."
+      },
+      "response": [
+        {
+          "name": "Agregar email no existente en la lista negra",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"estudiante_andes2@uniandes.edu.co\",\r\n    \"app_uuid\": \"f47ac10b-58cc-4372-a567-0e02b2c3d479\",\r\n    \"blocked_reason\": \"Intento de phishing detectado en sistema de notas\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/blacklists",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "blacklists"
+              ]
+            }
+          },
+          "status": "CREATED",
+          "code": 201,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Server",
+              "value": "nginx"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 10 Apr 2026 21:29:23 GMT"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Content-Length",
+              "value": "335"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"mensaje\": \"El email fue agregado exitosamente a la lista negra\",\n    \"registrado_por\": \"admin\",\n    \"id\": 3,\n    \"email\": \"estudiante_andes2@uniandes.edu.co\",\n    \"app_uuid\": \"f47ac10b-58cc-4372-a567-0e02b2c3d479\",\n    \"blocked_reason\": \"Intento de phishing detectado en sistema de notas\",\n    \"ip\": \"127.0.0.1\",\n    \"created_at\": \"2026-04-10T21:29:23.843947\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Agregar Email Existente en la lista negra",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"email\": \"estudiante_andes@uniandes.edu.co\",\r\n    \"app_uuid\": \"f47ac10b-58cc-4372-a567-0e02b2c3d479\",\r\n    \"blocked_reason\": \"Intento de phishing detectado en sistema de notas\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/blacklists",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "blacklists"
+          ]
+        },
+        "description": "## 3\\. Agregar email (Duplicado)\n\n**Descripción:** Intento de registro de un correo que ya existe en la base de datos. El microservicio garantiza la integridad de los datos evitando registros redundantes.\n\n- **Método:** `POST`\n    \n- **Endpoint:** `/blacklists`\n    \n- **Autorización:** `Bearer Token`\n    \n- **Código de respuesta:** `409 Conflict`"
+      },
+      "response": [
+        {
+          "name": "Agregar Email Existente en la lista negra",
+          "originalRequest": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"email\": \"estudiante_andes@uniandes.edu.co\",\r\n    \"app_uuid\": \"f47ac10b-58cc-4372-a567-0e02b2c3d479\",\r\n    \"blocked_reason\": \"Intento de phishing detectado en sistema de notas\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/blacklists",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "blacklists"
+              ]
+            }
+          },
+          "status": "CONFLICT",
+          "code": 409,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Server",
+              "value": "nginx"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 10 Apr 2026 21:30:20 GMT"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Content-Length",
+              "value": "58"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"mensaje\": \"El email ya se encuentra en la lista negra\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Consultar Email en lista negra",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/blacklists/estudiante_andes@uniandes.edu.co",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "blacklists",
+            "estudiante_andes@uniandes.edu.co"
+          ]
+        },
+        "description": "## 4\\. Consultar email (En lista negra)\n\n**Descripción:** Verifica si un correo específico ha sido bloqueado y recupera el motivo del bloqueo registrado por la aplicación de origen.\n\n- **Método:** `GET`\n    \n- **Endpoint:** `/blacklists/{{email}}`\n    \n- **Autorización:** `Bearer Token`\n    \n- **Código de respuesta:** `200 OK`"
+      },
+      "response": [
+        {
+          "name": "Consultar Email en lista negra",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/blacklists/estudiante_andes@uniandes.edu.co",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "blacklists",
+                "estudiante_andes@uniandes.edu.co"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Server",
+              "value": "nginx"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 10 Apr 2026 21:30:46 GMT"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Content-Length",
+              "value": "96"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"is_blacklisted\": true,\n    \"blocked_reason\": \"Intento de phishing detectado en sistema de notas\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Consultar email no en lista negra",
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/blacklists/juan_dev@gmail.com",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "blacklists",
+            "juan_dev@gmail.com"
+          ]
+        },
+        "description": "## 5\\. Consultar email (No existente)\n\n**Descripción:** Consulta un correo que no ha sido reportado en la lista negra global. Útil para validaciones previas al envío de comunicaciones.\n\n- **Método:** `GET`\n    \n- **Endpoint:** `/blacklists/{{email}}`\n    \n- **Autorización:** `Bearer Token`\n    \n- **Código de respuesta:** `200 OK`"
+      },
+      "response": [
+        {
+          "name": "Consultar email no en lista negra",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/blacklists/juan_dev@gmail.com",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "blacklists",
+                "juan_dev@gmail.com"
+              ]
+            }
+          },
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Server",
+              "value": "nginx"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 10 Apr 2026 21:31:09 GMT"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Content-Length",
+              "value": "26"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"is_blacklisted\": false\n}"
+        }
+      ]
+    },
+    {
+      "name": "Consultar sin token de autorización",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/blacklists/estudiante_andes@uniandes.edu.co",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "blacklists",
+            "estudiante_andes@uniandes.edu.co"
+          ]
+        },
+        "description": "## 6\\. Consultar sin autorización (Seguridad)\n\n**Descripción:** Prueba de seguridad para verificar que el endpoint esté protegido contra accesos no autorizados.\n\n- **Método:** `GET`\n    \n- **Endpoint:** `/blacklists/{{email}}`\n    \n- **Autorización:** `No Auth`\n    \n- **Código de respuesta:** `500 Internal Server Error`"
+      },
+      "response": [
+        {
+          "name": "Consultar sin token de autorización",
+          "originalRequest": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/blacklists/estudiante_andes@uniandes.edu.co",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "blacklists",
+                "estudiante_andes@uniandes.edu.co"
+              ]
+            }
+          },
+          "status": "INTERNAL SERVER ERROR",
+          "code": 500,
+          "_postman_previewlanguage": null,
+          "header": [
+            {
+              "key": "Server",
+              "value": "nginx"
+            },
+            {
+              "key": "Date",
+              "value": "Fri, 10 Apr 2026 21:31:26 GMT"
+            },
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Content-Length",
+              "value": "37"
+            },
+            {
+              "key": "Connection",
+              "value": "keep-alive"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"message\": \"Internal Server Error\"\n}"
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "{{base_url}}",
+      "value": ""
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ]
+}
