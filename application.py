@@ -1,5 +1,7 @@
 # Se importan las librerías necesarias para construir la API
 from flask import Flask, request
+import os
+
 from flask_restful import Api, Resource
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import (
@@ -16,7 +18,7 @@ app = Flask(__name__)
 application = app
 
 # Se establece la configuración de la aplicación, haciendo uso de los parámetros de ruta a la BBDD y definiendo la clave de autenticación
-app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql://postgres:password@devops.cwhg0wckmg13.us-east-1.rds.amazonaws.com:5432/postgres?sslmode=require"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "postgresql://postgres:password@devops.cwhg0wckmg13.us-east-1.rds.amazonaws.com:5432/postgres?sslmode=require")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["JWT_SECRET_KEY"] = "MaIA-Secret-Key"
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours = 1)
@@ -158,6 +160,6 @@ api.add_resource(BlacklistCheckResource, "/blacklists/<string:email>")
 with app.app_context():
     db.create_all()
 
-# Esto solo sirve para desarrollo local
+# Para desarrollo local
 if __name__ == "__main__":
     app.run(debug=True)
