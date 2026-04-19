@@ -48,7 +48,7 @@ class BlacklistSchema(Schema):
 # Se instancia el esquema de autenticación
 blacklist_schema = BlacklistSchema()
 
-
+# Comentario de prueba
 # Se define un endpoint de prueba
 class HealthResource(Resource):
     def get(self):
