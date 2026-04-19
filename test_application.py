@@ -6,6 +6,7 @@ os.environ["DATABASE_URL"] = "sqlite:///:memory:"
 
 from application import app, db, Blacklist
 
+#comentario de prueba
 @pytest.fixture
 def client():
     app.config["TESTING"] = True
