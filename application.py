@@ -52,7 +52,7 @@ blacklist_schema = BlacklistSchema()
 # Se define un endpoint de prueba
 class HealthResource(Resource):
     def get(self):
-        return {"status": "Ok"}, 200
+        return {"status": "ok"}, 200
 
 # Se define el endpoint POST para registrarse y autenticarse
 class LoginResource(Resource):
