@@ -48,10 +48,12 @@ class BlacklistSchema(Schema):
 # Se instancia el esquema de autenticación
 blacklist_schema = BlacklistSchema()
 
+
+# Error para probar el pipeline, cambiamos el servicio de salud con un error 500
 # Se define un endpoint de prueba
 class HealthResource(Resource):
     def get(self):
-        return {"status": "ok"}, 200
+        return {"status": "fallo_intencional_ci"}, 500
 
 # Se define el endpoint POST para registrarse y autenticarse
 class LoginResource(Resource):
