@@ -27,8 +27,6 @@ phases:
       - docker push $REPOSITORY_URI:latest
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo Generando el artefacto imagedefinitions.json...
-      # CRÍTICO: El nombre "devops" debe ser EXACTAMENTE el mismo que pusiste
-      # en el "Container name" de tu Task Definition en ECS.
       - printf '[{"name":"devops","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG
         > imagedefinitions.json
 
