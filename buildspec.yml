@@ -5,23 +5,34 @@ phases:
     runtime-versions:
       python: 3.12
     commands:
-      - echo Installing dependencies...
+      - echo Instalando dependencias y herramientas de prueba...
       - pip install -r requirements.txt
+      - pip install pytest
   pre_build:
     commands:
-      - echo Setting up test environment variables...
+      - echo "Ejecutando pruebas unitarias (Requisito de la Rúbrica)..."
       - export DATABASE_URL="sqlite:///:memory:"
+      - pytest test_application.py
+      - echo Autenticándose en Amazon ECR...
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login
+        --username AWS --password-stdin $REPOSITORY_URI
   build:
     commands:
-      - echo Running unit tests with pytest...
-      - pytest test_application.py
+      - echo Construyendo imagen de Docker...
+      - docker build -t $REPOSITORY_URI:latest .
+      - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
   post_build:
     commands:
-      - echo Build and tests completed successfully.
+      - echo Subiendo imagen a ECR...
+      - docker push $REPOSITORY_URI:latest
+      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - echo Generando el artefacto imagedefinitions.json...
+      # CRÍTICO: El nombre "devops" debe ser EXACTAMENTE el mismo que pusiste
+      # en el "Container name" de tu Task Definition en ECS.
+      - printf '[{"name":"devops","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG
+        > imagedefinitions.json
 
 artifacts:
   files:
-    - application.py
-    - requirements.txt
-    - buildspec.yml
-  name: blacklist-api-artifact
+    - imagedefinitions.json
+    - appspec.yaml # Agrégalo aquí también si vas a usar CodeDeploy después
