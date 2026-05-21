@@ -10,7 +10,7 @@ phases:
       - pip install pytest
   pre_build:
     commands:
-      - echo "Ejecutando pruebas unitarias (Requisito de la Rúbrica)..."
+      - echo "Ejecutando pruebas unitarias"
       - export DATABASE_URL="sqlite:///:memory:"
       - pytest test_application.py
       - echo Autenticándose en Amazon ECR...
