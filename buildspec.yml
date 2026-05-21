@@ -35,4 +35,4 @@ phases:
 artifacts:
   files:
     - imagedefinitions.json
-    - appspec.yaml # Agrégalo aquí también si vas a usar CodeDeploy después
+    - appspec.yaml 
